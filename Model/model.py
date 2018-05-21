@@ -33,3 +33,20 @@ def connect(filename):
         db.commit()
     return db
 
+def insert_scan():
+    cursor = db.connect()
+
+def insert_js_string():
+    pass
+
+def insert_scan_report():
+    pass
+
+def insert_positive_scan():
+    pass
+
+def get_url():
+    pass
+
+def get_report():
+    pass
