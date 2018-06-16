@@ -11,7 +11,8 @@ class Scanner:
     """
     Responsible for getting the URL from the user, along with other specifications user may specify. Will then check the date the page was last modified, and check if the page was processed before. It extracts javascript from the page
     """
-    
+
+        
     def __init__(self, scan_domain=False, username="", password="", last_modified="" ):
         self.url = ""
         self.last_modified = last_modified
@@ -22,11 +23,12 @@ class Scanner:
                 
     #to retrieve the url to be scanned, checks if it is valid, and link is active
     def get_url(self, url):
+        #we need to come up with a way of handling page redirects
         try:
             html = urlopen(url)
             self.url = url
         except HTTPError as e:
-            print(url, " page not found")
+            print(url, " 404, page not found")
             html = None
         except ValueError as e:
             print(url, " invalid url")
@@ -45,15 +47,16 @@ class Scanner:
     def check_if_scanned(self, url):
         #come up with a function for last_modified
         last_modified = random.random() * 10000000000
-        if get_url(url):            
-            if last_modified > get_scan_date(url):
-                print("page not modified since last scan")
-                get_report(url)
-        else:
-            if url:
-                print("no earlier scan found, beginning scraping")
-                self.scrap_page(url)                
-                    
+        #if get_url(url):
+         #   if last_modified > float(get_scan_date(url)):
+          #      print("page not modified since last scan")
+           #     print(get_report(url))
+        #else:
+         #   if url:
+          #      print("no earlier scan found, beginning scraping")
+           #     self.scrap_page(url)                
+        print("no earlier scan found, beginning scraping")
+        self.scrap_page(url)            
 
     #scraps page pointed to by url
     def scrap_page(self, url):
@@ -67,7 +70,23 @@ class Scanner:
         self.get_js(bsObj)
         
     #extracts js from the HTML source
-    def get_js(self, bsObj):
-        print("getting page js from : \n", bsObj.prettify() )
-
-    
+    def get_js(self, bsObj):       
+        self.page_html = bsObj.prettify()
+        self.scripts = []
+        self.script = bsObj.findAll('script')
+        print("getting page js from page: \n")
+        if self.script:
+            print("scripts include: ")
+            for script in self.script:
+                print(script.get_text(), "\n")
+                self.scripts.append(script.get_text())
+        tags = bsObj.findAll(lambda tag: len(tag.attrs) >0, recursive=False)
+        attributes = ["onmouseover", "onblur", "onload", "onerror"]
+        print("tags with attributes include: ")
+        for tag in tags:
+            for attribute in attributes:
+                if attribute in str(tag):
+                    script = str(tag).split(attribute)[1].split(">")[0].split("=")[1].split(" ")[0]
+                    self.scripts.append(script)
+                    print("Script is ", script)
+      
