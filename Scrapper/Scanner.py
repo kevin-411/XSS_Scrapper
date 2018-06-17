@@ -40,8 +40,8 @@ class Scanner:
             return False
         else:
             print("url approved, looking up db")
-            self.check_if_scanned(self.url)
-        
+            #self.check_if_scanned(self.url)
+            return self.url
 
     #checks if url has already been scanned, and if so, compares scan date with last modification date
     def check_if_scanned(self, url):
@@ -56,7 +56,8 @@ class Scanner:
           #      print("no earlier scan found, beginning scraping")
            #     self.scrap_page(url)                
         print("no earlier scan found, beginning scraping")
-        self.scrap_page(url)            
+        #self.scrap_page(url)
+        return url
 
     #scraps page pointed to by url
     def scrap_page(self, url):
@@ -67,7 +68,8 @@ class Scanner:
         scan_date = time.time()
         insert_scan(url, scan_date, last_modified)
         print("scrapping complete, beginning js extraction")
-        self.get_js(bsObj)
+        #self.get_js(bsObj)
+        return bsObj
         
     #extracts js from the HTML source
     def get_js(self, bsObj):       
@@ -81,7 +83,7 @@ class Scanner:
                 print(script.get_text(), "\n")
                 self.scripts.append(script.get_text())
         tags = bsObj.findAll(lambda tag: len(tag.attrs) >0, recursive=False)
-        attributes = ["onmouseover", "onblur", "onload", "onerror"]
+        attributes = ["onreadystatechange","onpropertychange","onbeforeactivate","onactivatein","onfocusin","onscroll","onmousemove","onmouseover", "onblur", "onload", "onerror","data","src","formaction"]
         print("tags with attributes include: ")
         for tag in tags:
             for attribute in attributes:
@@ -89,4 +91,5 @@ class Scanner:
                     script = str(tag).split(attribute)[1].split(">")[0].split("=")[1].split(" ")[0]
                     self.scripts.append(script)
                     print("Script is ", script)
+        return self.scripts
       
