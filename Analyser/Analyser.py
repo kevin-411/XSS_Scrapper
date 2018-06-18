@@ -18,9 +18,10 @@ Responsibilities
 -- check for similar entries in database
 """
 import re
+from Model.model import *
 
 class Analyzer:
-    def __init__(self, js_code=['']):
+    def __init__(self, js_code=[''], url):
         self.regex = ""
         self.js_code = js_code
         self.code_blocks = []
@@ -29,6 +30,9 @@ class Analyzer:
         self.xss_result = ""
         self.remedy = ""
         self.obfuscated
+        self.xss_payload_regexes = get_payloads()
+        self.discovered_xss = []
+        self.url = url
 
     def tokenize(self):
         #need to take care of the optional semicolon present during htmlencoding
@@ -64,15 +68,25 @@ class Analyzer:
                     for block in self.code_blocks:
                         new_block = str(block).replace(old_code, new_code)
                         self.clean_blocks.append(new_block)
-            
-        return self.clean_blocks if self.obfuscated else self.code_blocks
+
+        if not self.obfuscated: self.clean_blocks = self.code_blocks 
+        return self.clean_blocks 
         
     def compare(self):
         #function looks up database for similar entries on js payloads
         #the db should thus already be populated with some payload samples
-        #regular expressions will then be used to check for similar entries in the db
-        pass
-
+        #how to establish the entry point of an xss payload?
+        #how to craft the remedy, sucha as to tell the developer/admin which lines should be escaped/looked at keenly
+        url = self.url
+        for js_code in self.clean_blocks:            
+            for xss_payload_regex in self.xss_payload_regexes:
+                if re.search(xss_payload_regex, js_code, re.I):
+                    code_index = self.clean_blocks.index(js_code)
+                    self.discovered_xss.append(self.code_blocks[code_index])
+                    string = re.findAll(xss_payload_regex, js_code)
+                    effect_of_js = get_effect_of_js(xss_payload_regex)
+                    
+                    
     def update_report(self):
         pass
 
