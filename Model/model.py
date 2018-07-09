@@ -111,6 +111,14 @@ try:
         fields = cursor.fetchone()
         return fields[0] if fields is not None else None
 
+    def get_scan_id(url):
+        connect()
+        db = sqlite3.connect(filename)
+        cursor = db.cursor()
+        cursor.execute("SELECT scan_id FROM url_scan WHERE url = ?", (url,))
+        fields = cursor.fetchone()
+        return fields[0] if fields is not None else None
+
     def get_report(url):
         connect()
         db = sqlite3.connect(filename)
@@ -123,7 +131,9 @@ try:
         connect()
         db = sqlite3.connect(filename)
         cursor = db.cursor()
-        cursor.execute("")
+        cursor.execute("SELECT regex FROM js_string")
+        fields = cursor.fetchall()
+        return fields if fields is not None else None 
         
 
 finally:
