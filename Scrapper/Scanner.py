@@ -3,6 +3,7 @@ from urllib.request import urlopen
 from urllib.error import HTTPError
 from Model.model import *
 import time
+import re
 
 #use this to generate random last_modifieds
 import random
@@ -68,11 +69,58 @@ class Scanner:
         scan_date = time.time()
         insert_scan(url, scan_date, last_modified)
         print("scrapping complete, beginning js extraction")
+        page_html = bsObj.prettify()
         #self.get_js(bsObj)
-        return bsObj
+        return page_html
+
+    #function moved from analyser component
+    def deobfuscate(self,page_html):
+        #for now we'll have to work with only html_encoded strings, for simplicity
+        #theres also superflous use of escape characters
+        
+        #when the agent has been positively identified, deobfuscation will be attempted using the agent's technique in reverse
+        #the deobfuscation should ideally be done multiple times
+        #once the obfuscation technique has been identified, the string in question is substituted as appropriate in the code block
+        print("attempting preliminary deobfuscation")
+        clean_block = ""
+        html_code = page_html
+        for code in html_code.split(" "):            
+            unicode_escape_re = re.search(r'.*\\[U1X]\d+', code, re.I)
+            html_encode_re = re.search('.*&#[x1]\d+', code, re.I)
+            null_byte_re = re.search('.*\[%00\]', code, re.I)
+            char_code_re = re.search('String.fromCharCode', code, re.I)
+            if unicode_escape_re or html_encode_re or null_byte_re or char_code_re:
+                self.obfuscated = True
+                if not html_encode_re and not unicode_escape_re:                    
+                    print("unsuported obfuscation =>>", code)
+                    code2 = code
+                else:
+                    print("found ==>", code)
+                    if unicode_escape_re:
+                        old_code = re.findall(r'.*\\[U1X]\d+', code, re.I)[0].split('\\')[1]
+                        if old_code[0] is 'u' or old_code[0] is 'x':
+                            old_code2 = old_code.replace('u', 'x')
+                            new_code = chr(eval('0'+old_code2+'c'))
+                        else:
+                            new_code = old_code
+                    elif html_encode_re:       
+                        old_code = re.findall('&#[x1]\d+', code, re.I)[0].split("#")[1]
+                        if x in old_code:
+                            new_code = chr(eval('0'+old_code+'c'))
+                        else:
+                            new_code = chr(eval(old_code))                    
+                    code2 = code.replace("\\"+old_code+"c", new_code)
+                    print(code, " transformed to ==> ", code2)
+
+            else:
+                code2 = code
+                
+            clean_block = clean_block + code2.lower() + " "
+        return clean_block 
         
     #extracts js from the HTML source
-    def get_js(self, bsObj):       
+    def get_js(self, html):
+        bsObj = BeautifulSoup(html, "html.parser")
         self.page_html = bsObj.prettify()
         self.scripts = []
         self.script = bsObj.findAll('script')
@@ -80,7 +128,7 @@ class Scanner:
         if self.script:
             print("scripts include: ")
             for script in self.script:
-                print(script.get_text(), "\n")
+                print(script.get_text())
                 self.scripts.append(script.get_text())
         tags = bsObj.findAll(lambda tag: len(tag.attrs) >0, recursive=False)
         attributes = ["onreadystatechange","onpropertychange","onbeforeactivate","onactivatein","onfocusin","onscroll","onmousemove","onmouseover", "onblur", "onload", "onerror","data","src","formaction"]
