@@ -14,22 +14,19 @@ class Analyser:
         self.xss_payload_regexes = get_payloads()
         self.discovered_xss = []
         self.url = url
+        print("xss payload regexes include: ", self.xss_payload_regexes)
 
     def tokenize(self):
-        #need to take care of the optional semicolon present during htmlencoding
         #for code in self.js_code:
          #   code = str(code)
           #  self.code_blocks.append(code.split(";"))
         for block in self.js_code:
-            block = str(block)
+            block = str(block).strip()
             self.tokens.append(block.split(" "))
         return self.tokens            
        
     def deobfuscate(self,tokens):
-        #for now we'll have to work with only html_encoded strings, for simplicity
         #theres also superflous use of escape characters
-        
-        #when the agent has been positively identified, deobfuscation will be attempted using the agent's technique in reverse
         #the deobfuscation should ideally be done multiple times
         #once the obfuscation technique has been identified, the string in question is substituted as appropriate in the code block
         clean_blocks = []
@@ -62,7 +59,7 @@ class Analyser:
                         new_block = str(block).replace("\\"+old_code+"c", new_code)
                         clean_blocks.append(new_block)
 
-        if not self.obfuscated: clean_blocks = self.code_blocks 
+        if not self.obfuscated: clean_blocks = self.tokens
         return clean_blocks 
         
     def compare(self, clean_blocks):
@@ -71,18 +68,31 @@ class Analyser:
         #how to establish the entry point of an xss payload?
         #how to craft the remedy, sucha as to tell the developer/admin which lines should be escaped/looked at keenly
         url = self.url
-        for js_code in clean_blocks:            
+        for js_code in clean_blocks:
+            js_code = str(js_code[0])
+            print("clean js_code: ", js_code)
             for xss_payload_regex in self.xss_payload_regexes:
+                xss_payload_regex = str(xss_payload_regex[0])
+                print("comparing ", xss_payload_regex , " against ", js_code, "\n")
                 if re.search(xss_payload_regex, js_code, re.I):
-                    code_index = self.clean_blocks.index(js_code)
-                    self.discovered_xss.append(self.code_blocks[code_index])
-                    string = re.findAll(xss_payload_regex, js_code)
+                    code = re.findall(xss_payload_regex, js_code, re.I)[0]
+                
+                    try:
+                        code_index = clean_blocks.index(code)
+                    except ValueError:
+                        print("Clean Blocks are such as ==> ", clean_blocks)
+                        code_index = clean_blocks.index(eval("['"+code+"']"))
+                   
+                    self.discovered_xss.append(self.tokens[code_index])
+                    string = re.findall(xss_payload_regex, js_code)[0]
                     effect_of_js = get_effect_of_js(xss_payload_regex)
                     remedy = "Enter line number of problematic code"
-                    insert_positive_scan(get_scan_id(self.url), self.url, string, js_code, effect_of_js, remedy)
-                    return "Positive"
+                    print("url is >>", self.url)
+                    print("scan id is >>", get_scan_id(self.url))
+                    insert_positive_scan(get_scan_id(self.url), self.url, string, code, effect_of_js, remedy)
+                    print("Positive=====")
                 else:
-                    return "Negative"
+                    print("Negative-----")
                     
                     
     def update_report(self):
