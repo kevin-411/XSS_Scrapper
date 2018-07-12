@@ -75,8 +75,8 @@ try:
         db = sqlite3.connect(filename)
         cursor = db.cursor()
         cursor.execute("INSERT INTO positive_scan "
-                       "(scan_id, url, string, other_js, effect_of_js, remedy)"
-                       "VALUES (?, ?, ?, ?, ?, ?)", (scan_id, url, string, other_js, effect_of_js, remedy))
+                       "(scan_id, url, string, other_js_string, effect_of_js, remedy)"
+                       "VALUES (?, ?, ?, ?, ?, ?)", (int(scan_id), str(url), string, other_js, effect_of_js, remedy,))
         db.commit()
 
     def get_js_string(regex):
