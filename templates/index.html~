@@ -1,0 +1,14 @@
+{%extends 'base.html'%} 
+{%block title%}
+MIGUNA
+{%endblock%}
+{% block content %}
+
+      <form action="link" method="post" enctype="multipart/form-data">
+        
+        <input maxlength="256" autocomplete="off" type="search" class="link" name="url" required placeholder="Enter domain to scan">
+        <input type="submit" value="Upload">
+      </form>
+      
+{%endblock%}
+ 
