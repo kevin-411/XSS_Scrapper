@@ -4,8 +4,7 @@ import time, os
 filename = "scrapper_db"
 db = None
 try:
-    #there is need to create a table that will be storing the regex for the various positive scans
-    #the table will also have the effects of the various scripts
+    
     #there will therefore alsobe a separate table for storing the scripts extracted from a table, yet to be classified as malicious
     #create/connect to the database
     def connect():
@@ -119,11 +118,19 @@ try:
         fields = cursor.fetchone()
         return fields[0] if fields is not None else None
 
-    def get_report(url):
+    def get_negative_scan_report(url):
         connect()
         db = sqlite3.connect(filename)
         cursor = db.cursor()
         cursor.execute("SELECT * FROM scan_report WHERE url = ?", (url,))
+        fields = cursor.fetchone()
+        return fields[0] if fields is not None else None
+    
+    def get_positive_scan_report(url):
+        connect()
+        db = sqlite.connect(filename)
+        cursor = db.cursor()
+        cursor.execute("SELECT * FROM positive_scan WHERE url = ?", (url, ))
         fields = cursor.fetchone()
         return fields[0] if fields is not None else None
 
