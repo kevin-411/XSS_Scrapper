@@ -5,15 +5,11 @@ from Model.model import *
 import time
 import re
 
-#use this to generate random last_modifieds
-import random
-
 class Scanner:
     """
     Responsible for getting the URL from the user, along with other specifications user may specify. Will then check the date the page was last modified, and check if the page was processed before. It extracts javascript from the page
     """
-
-        
+       
     def __init__(self, scan_domain=False, username="", password="", last_modified="" ):
         self.url = ""
         self.last_modified = last_modified
@@ -23,7 +19,7 @@ class Scanner:
         print("attempting db connection")
                 
     #to retrieve the url to be scanned, checks if it is valid, and link is active
-    def get_url(self, url):
+    def check_url(self, url):
         #we need to come up with a way of handling page redirects
         try:
             html = urlopen(url)
@@ -47,26 +43,24 @@ class Scanner:
     #checks if url has already been scanned, and if so, compares scan date with last modification date
     def check_if_scanned(self, url):
         #come up with a function for last_modified
-        last_modified = random.random() * 10000000000
-        #if get_url(url):
-         #   if last_modified > float(get_scan_date(url)):
-          #      print("page not modified since last scan")
-           #     print(get_report(url))
-        #else:
-         #   if url:
-          #      print("no earlier scan found, beginning scraping")
-           #     self.scrap_page(url)                
-        print("no earlier scan found, beginning scraping")
-        #self.scrap_page(url)
-        return url
+        self.last_modified = "07/13/2019 02:16:57"
+        print("Scan date is ====>", get_scan_date(url))
+        if get_url(url) and self.last_modified >= get_scan_date(url):
+            print("page not modified since last scan")
+           # print(get_report(url))
+            return True
+        else:           
+            print("no recent scan found, beginning scraping")
+            return False
+            
 
     #scraps page pointed to by url
     def scrap_page(self, url):
         #work yet to be done on the recussion of pages, should a whole domain be scanned
         html = urlopen(url)
         bsObj = BeautifulSoup(html.read(), "html.parser")
-        last_modified = random.random() * 10000000000
-        scan_date = time.time()
+        last_modified = self.last_modified
+        scan_date = time.strftime("%d/%m/%Y %H:%M:%S")
         insert_scan(url, scan_date, last_modified)
         print("scrapping complete, beginning js extraction")
         page_html = bsObj.prettify()
@@ -136,8 +130,12 @@ class Scanner:
         for tag in tags:
             for attribute in attributes:
                 if attribute in str(tag):
-                    script = str(tag).split(attribute)[1].split(">")[0].split("=")[1].split(" ")[0]
-                    self.scripts.append(script)
-                    print("Script is ", script)
+                    try:
+                        script = str(tag).split(attribute)[1].split(">")[0].split("=")[1].split(" ")[0]
+                        self.scripts.append(script)
+                        print("Script is ", script)
+                    except IndexError:
+                        continue
+                    
         return self.scripts
       

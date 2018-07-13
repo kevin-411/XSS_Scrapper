@@ -8,13 +8,12 @@ class Analyser:
         self.js_code = js_code
         self.code_blocks = []
         self.tokens = []
-        self.xss_result = ""
-        self.remedy = ""
+        self.effect_of_js = []
+        self.remedy = []
         self.obfuscated = ""
         self.xss_payload_regexes = get_payloads()
         self.discovered_xss = []
         self.url = url
-        print("xss payload regexes include: ", self.xss_payload_regexes)
 
     def tokenize(self):
         #for code in self.js_code:
@@ -28,7 +27,6 @@ class Analyser:
     def deobfuscate(self,tokens):
         #theres also superflous use of escape characters
         #the deobfuscation should ideally be done multiple times
-        #once the obfuscation technique has been identified, the string in question is substituted as appropriate in the code block
         clean_blocks = []
         for code in tokens:
             code = str(code)
@@ -58,53 +56,64 @@ class Analyser:
                     for block in self.code_blocks:
                         new_block = str(block).replace("\\"+old_code+"c", new_code)
                         clean_blocks.append(new_block)
-
         if not self.obfuscated: clean_blocks = self.tokens
         return clean_blocks 
         
     def compare(self, clean_blocks):
-        #function looks up database for similar entries on js payloads
-        #the db should thus already be populated with some payload samples
         #how to establish the entry point of an xss payload?
         #how to craft the remedy, sucha as to tell the developer/admin which lines should be escaped/looked at keenly
         url = self.url
+        print(clean_blocks)
         for js_code in clean_blocks:
-            js_code = str(js_code[0])
-            print("clean js_code: ", js_code)
-            for xss_payload_regex in self.xss_payload_regexes:
-                xss_payload_regex = str(xss_payload_regex[0])
-                print("comparing ", xss_payload_regex , " against ", js_code, "\n")
-                if re.search(xss_payload_regex, js_code, re.I):
-                    code = re.findall(xss_payload_regex, js_code, re.I)[0]
-                
-                    try:
-                        code_index = clean_blocks.index(code)
-                    except ValueError:
-                        print("Clean Blocks are such as ==> ", clean_blocks)
-                        code_index = clean_blocks.index(eval("['"+code+"']"))
-                   
-                    self.discovered_xss.append(self.tokens[code_index])
-                    string = re.findall(xss_payload_regex, js_code)[0]
-                    effect_of_js = get_effect_of_js(xss_payload_regex)
-                    remedy = "Enter line number of problematic code"
-                    print("url is >>", self.url)
-                    print("scan id is >>", get_scan_id(self.url))
-                    insert_positive_scan(get_scan_id(self.url), self.url, string, code, effect_of_js, remedy)
-                    print("Positive=====")
-                else:
-                    print("Negative-----")
+            for js_code2 in js_code:
+                js_code2 = str(js_code2).strip()
+                if js_code2 == "":
+                    continue 
+                print("clean js_code: ", js_code2)
+                for xss_payload_regex in self.xss_payload_regexes:
+                    xss_payload_regex = str(xss_payload_regex[0])
+                    print("comparing ", xss_payload_regex , " against ", js_code2, "\n")
+                    if re.search(xss_payload_regex, js_code2, re.I):
+                        code = re.findall(xss_payload_regex, js_code2, re.I)[0]
+                        try:
+                            try:
+                                code_index = clean_blocks.index(code)
+                            except ValueError:
+                                code_index = clean_blocks.index(eval("['"+code+"']"))
+                        except ValueError:
+                            continue                            
+                        
+                        string = re.findall(xss_payload_regex, js_code2)[0]
+                        effect_of_js = get_effect_of_js(xss_payload_regex)
+                        remedy = "Enter line number of problematic code"
+                        self.discovered_xss.append(self.tokens[code_index])
+                        self.effect_of_js.append(effect_of_js)
+                        self.remedy.append(remedy)
+                        insert_positive_scan(get_scan_id(self.url), self.url, string, code, effect_of_js, remedy)
+                        print("Positive=====")
+                    else:
+                        print("Negative-----")
                     
                     
     def update_report(self):
-        #this function is supposed to populate 2 tables;
-        #i) is the scan_report, where a result will be either positive or negative
-        #ii) is the positive_scan, where details on a positive scan will be entered
+        #need to get script location, as well as possible entry point
+        link = self.url
+        payload_used = self.discovered_xss
+        effect_of_payload = self.effect_of_js
+        script_location = "position x"
+        possible_entry_point = "point x"
+        remedy = self.remedy
+        time_value = time.strftime("%d/%m/%Y %H:%M:%S")
+        print("payload_used ===>>> ", payload_used)
         if self.discovered_xss:
-            insert_scan_report(self.url,"Positive", time.strftime("%H:%M:%S %d/%m/%Y"))
-           
+            xss_result = "Positive"
+            insert_scan_report(link,xss_result,time_value)
+            results = {'link': link, 'xss_result': xss_result, 'payload_used': payload_used, 'effect_of_payload': effect_of_payload, 'script_location': script_location, 'possible_entry_point': possible_entry_point, 'remedy': remedy}
         else:
-            insert_scan_report(self.url, "Negative", time.strftime("%H:%M:%S %d/%m/%Y"))
-        pass
+            xss_result = "Negative"
+            insert_scan_report(link, xss_result, time_value)
+            results = {'link': link, 'xss_result': xss_result}
+        return results
 
     
     

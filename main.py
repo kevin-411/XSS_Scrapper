@@ -2,6 +2,8 @@
 
 from Scrapper.Scanner import Scanner
 from Analyser.Analyser import Analyser
+from Reporter.Reporter import Reporter
+from Model.model import *
 import io 
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from werkzeug import secure_filename
@@ -16,11 +18,15 @@ app = Flask(__name__)
 def mainFunc(link):    
     scanx = Scanner()
     url = link
-    valid_url = scanx.get_url(url)
+    valid_url = scanx.check_url(url)
     if not valid_url:
         return False
-    print("URL scan complete, ur approved *****")
-    scanx.check_if_scanned(url)
+    print("URL approved *****")
+    scanned_earlier = scanx.check_if_scanned(url)
+    if scanned_earlier:        
+        results = get_negative_scan_report(url)
+        results2 = get_positive_scan_report(url)
+        return results2 if results2 is not None else results
     print("url scan check complete *****")
     html = scanx.scrap_page(url)
     print("page scrap complete *****")
@@ -33,11 +39,15 @@ def mainFunc(link):
     code_tokens = analysis_x.tokenize()
     print("code tokenization completed \n*****")
     clean_blocks = analysis_x.deobfuscate(code_tokens)
-    print("code deobfuscation completed ***** >>", clean_blocks)
+    print("code deobfuscation completed ***** ")
     analysis_x.compare(clean_blocks)
     print("code comparison completed *****")
-    analysis_x.update_report()
+    results_ = analysis_x.update_report()
     print("report updating complete *****")
+    report = Reporter(url, scripts)
+    results = report.get_results()
+    
+    return results_
     
 @app.route('/')
 def index():
@@ -49,9 +59,10 @@ def link():
         return render_template('index.html')
     else:
         link = request.form['url']
-        if mainFunc(link) is False:
+        results = mainFunc(link)
+        if results is False:
             return render_template('500.html'), 500
-        return render_template('result.html')
+        return render_template('result.html', results=results)
             
 
 @app.errorhandler(404)
