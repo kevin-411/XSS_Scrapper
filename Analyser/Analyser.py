@@ -1,5 +1,6 @@
 import re
 from Model.model import *
+from urllib.request import urlopen
 import time
 
 class Analyser:
@@ -14,11 +15,9 @@ class Analyser:
         self.xss_payload_regexes = get_payloads()
         self.discovered_xss = []
         self.url = url
+        self.code_index = []
 
     def tokenize(self):
-        #for code in self.js_code:
-         #   code = str(code)
-          #  self.code_blocks.append(code.split(";"))
         for block in self.js_code:
             block = str(block).strip()
             self.tokens.append(block.split(" "))
@@ -72,7 +71,7 @@ class Analyser:
                 print("clean js_code: ", js_code2)
                 for xss_payload_regex in self.xss_payload_regexes:
                     xss_payload_regex = str(xss_payload_regex[0])
-                    print("comparing ", xss_payload_regex , " against ", js_code2, "\n")
+                    #rint("comparing ", xss_payload_regex , " against ", js_code2, "\n")
                     if re.search(xss_payload_regex, js_code2, re.I):
                         code = re.findall(xss_payload_regex, js_code2, re.I)[0]
                         try:
@@ -80,9 +79,9 @@ class Analyser:
                                 code_index = clean_blocks.index(code)
                             except ValueError:
                                 code_index = clean_blocks.index(eval("['"+code+"']"))
-                        except ValueError:
+                        except:
                             continue                            
-                        
+                        self.code_index.append(self.get_script_location(url,code))
                         string = re.findall(xss_payload_regex, js_code2)[0]
                         effect_of_js = get_effect_of_js(xss_payload_regex)
                         remedy = "Enter line number of problematic code"
@@ -90,17 +89,32 @@ class Analyser:
                         self.effect_of_js.append(effect_of_js)
                         self.remedy.append(remedy)
                         insert_positive_scan(get_scan_id(self.url), self.url, string, code, effect_of_js, remedy)
-                        print("Positive=====")
+                        #print("Positive=====")
                     else:
-                        print("Negative-----")
-                    
+                        #print("Negative-----")
+                        continue
+
+    def get_script_location(self, url, script):
+        html = urlopen(url).read().decode(encoding='utf-8')
+        print("html is ", html)
+        html_code_list = html.split("\n")
+        print("html code list: ", html_code_list)
+        
+        for html_line in html_code_list:
+            #print("Checking if ", script, " in ", html_line)
+            if re.search(re.escape(script), html_line, re.I):
+                
+                code_index = html_code_list.index(html_line)
+                print("Found ", script, " at ", code_index)
+                return code_index +1
+                  
                     
     def update_report(self):
         #need to get script location, as well as possible entry point
         link = self.url
         payload_used = self.discovered_xss
         effect_of_payload = self.effect_of_js
-        script_location = ["position x"]
+        script_location = self.code_index
         possible_entry_point = ["point x"]
         remedy = self.remedy
         time_value = time.strftime("%d/%m/%Y %H:%M:%S %Z")
