@@ -9,6 +9,8 @@ class Scanner:
     """
     Responsible for getting the URL from the user, along with other specifications user may specify. Will then check the date the page was last modified, and check if the page was processed before. It extracts javascript from the page
     """
+
+    
        
     def __init__(self, scan_domain=False, username="", password="", last_modified="" ):
         self.url = ""
@@ -17,6 +19,35 @@ class Scanner:
         self.username = username
         self.password = password
         print("attempting db connection")
+        self.pages = []
+
+    def link_iterator(self, url):        
+        if not self.check_url(url):
+            return False
+        html = urlopen(url)
+        bsObj = BeautifulSoup(html.read(), "html.parser")
+        domain_name = url.split("//")[1].split("/")[0]
+        links1 = bsObj.findAll("a", href=re.compile("^("+domain_name+")"))
+        links2 = bsObj.findAll("a", href=re.compile("^[/.][a-zA-Z]"))
+        try:
+            links1[0].split()
+            links_in_current_page = links1
+        except:
+            links_in_current_page = links2
+        print("current link: ",url,  " links in current page: ", links_in_current_page)
+        for link in links_in_current_page:
+            if 'href' in link.attrs:
+                try:
+                    links1[0].split()
+                    newPage = link.attrs['href']                    
+                except:
+                    newPage = url.split("//")[0]+"//"+domain_name+link.attrs['href']
+            
+                if newPage not in self.pages:                   
+                    print(newPage)
+                    self.pages.append(newPage)
+                    self.link_iterator(newPage)
+        return self.pages
                 
     #to retrieve the url to be scanned, checks if it is valid, and link is active
     def check_url(self, url):
@@ -37,15 +68,24 @@ class Scanner:
             return False
         else:
             print("url approved, looking up db")
+            if html.getheader('last-modified'):
+                last_modified = html.getheader('last-modified')
+            else:
+                last_modified = html.getheader('date')
+            last_modified = time.strptime(last_modified, '%a, %d %b %Y %H:%M:%S %Z')
+            self.last_modified = time.strftime("%d/%m/%Y %H:%M:%S %Z", last_modified)
             #self.check_if_scanned(self.url)
             return self.url
 
     #checks if url has already been scanned, and if so, compares scan date with last modification date
     def check_if_scanned(self, url):
-        #come up with a function for last_modified
-        self.last_modified = "07/13/2019 02:16:57"
         print("Scan date is ====>", get_scan_date(url))
-        if get_url(url) and self.last_modified >= get_scan_date(url):
+        last_modified = time.strptime(self.last_modified, "%d/%m/%Y %H:%M:%S %Z")
+        try:
+            scan_date = time.strptime(get_scan_date(url), "%d/%m/%Y %H:%M:%S %Z")
+        except TypeError:
+            scan_date = None
+        if scan_date and get_url(url) and last_modified >= scan_date:
             print("page not modified since last scan")
            # print(get_report(url))
             return True
@@ -60,7 +100,7 @@ class Scanner:
         html = urlopen(url)
         bsObj = BeautifulSoup(html.read(), "html.parser")
         last_modified = self.last_modified
-        scan_date = time.strftime("%d/%m/%Y %H:%M:%S")
+        scan_date = time.strftime("%d/%m/%Y %H:%M:%S %Z")
         insert_scan(url, scan_date, last_modified)
         print("scrapping complete, beginning js extraction")
         page_html = bsObj.prettify()
