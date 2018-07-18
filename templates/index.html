@@ -2,7 +2,7 @@
 {% block content %}
 <form action="link" method="post" enctype="multipart/form-data">        
   <input maxlength="256" autocomplete="off" type="url" class="link" name="url" required placeholder="Enter domain to scan"><br>
-  <input type="checkbox" name="domain_search" value="true"> Search Entire Domain<br>
+  <input type="checkbox" name="domain_search" value="true" autocomplete="off"> Search Entire Domain<br>
   <input maxlength="256" autocomplete="off" type="search" class="link_creds" name="url_creds" placeholder="Enter site username">
   <input maxlength="256" autocomplete="off" type="password" class="link_creds" name="url_creds" placeholder="Enter site password">
   <input type="submit" value="Upload">
