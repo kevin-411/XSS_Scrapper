@@ -34,7 +34,7 @@ class Scanner:
             links_in_current_page = links1
         except:
             links_in_current_page = links2
-        print("current link: ",url,  " links in current page: ", links_in_current_page)
+        print("current link: ",url)
         for link in links_in_current_page:
             if 'href' in link.attrs:
                 try:
@@ -73,12 +73,12 @@ class Scanner:
             else:
                 last_modified = html.getheader('date')
             last_modified = time.strptime(last_modified, '%a, %d %b %Y %H:%M:%S %Z')
-            self.last_modified = time.strftime("%d/%m/%Y %H:%M:%S %Z", last_modified)
-            #self.check_if_scanned(self.url)
+            self.last_modified = time.strftime("%d/%m/%Y %H:%M:%S %Z", last_modified)            
             return self.url
 
     #checks if url has already been scanned, and if so, compares scan date with last modification date
     def check_if_scanned(self, url):
+        #to do the whole last_modified thing, we could get away with calculating the page's hash during an initial scan, then comparing this against subsequent scans to check against any modifications in the page
         print("Scan date is ====>", get_scan_date(url))
         last_modified = time.strptime(self.last_modified, "%d/%m/%Y %H:%M:%S %Z")
         try:
@@ -96,7 +96,6 @@ class Scanner:
 
     #scraps page pointed to by url
     def scrap_page(self, url):
-        #work yet to be done on the recussion of pages, should a whole domain be scanned
         html = urlopen(url)
         bsObj = BeautifulSoup(html.read(), "html.parser")
         last_modified = self.last_modified
@@ -104,17 +103,13 @@ class Scanner:
         insert_scan(url, scan_date, last_modified)
         print("scrapping complete, beginning js extraction")
         page_html = bsObj.prettify()
-        #self.get_js(bsObj)
         return page_html
 
     #function moved from analyser component
-    def deobfuscate(self,page_html):
-        #for now we'll have to work with only html_encoded strings, for simplicity
+    def deobfuscate(self,page_html):        
         #theres also superflous use of escape characters
-        
-        #when the agent has been positively identified, deobfuscation will be attempted using the agent's technique in reverse
+      
         #the deobfuscation should ideally be done multiple times
-        #once the obfuscation technique has been identified, the string in question is substituted as appropriate in the code block
         print("attempting preliminary deobfuscation")
         clean_block = ""
         html_code = page_html
