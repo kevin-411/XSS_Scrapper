@@ -1,32 +1,35 @@
 {%extends 'base.html'%} 
 {% block content %}
-Links = <a href="{{results['link']}}">{{results['link']}}</a> <br>&nbsp<br>
-{% if results['xss_result']=="Positive" %}
+{% for link in range(links_len) %}
+
+{{ link+1 }}. Link = <a href="{{results[link]['link']}}">{{results[link]['link']}}</a> <br>&nbsp<br>
+{% if results[link]['xss_result']=="Positive" %}
 <p style="background-color: red;" >
   {% else %}
 <p style="background-color: green;" >
   
   {%  endif %}
 
-  XSS_result = {{results['xss_result']}}</p> <br>&nbsp<br><p>{% if results.__len__()>2 %}
-  Payload Used : <ol> {% for payload in results['payload_used'] %}
+  XSS_result = {{results[link]['xss_result']}}</p> <br>&nbsp<br><p>{% if results[link].__len__()>2 %}
+  Payload Used : <ol> {% for payload in results[link]['payload_used'] %}
 
     <li style="background-color: burlywood;"> {{ payload }} </li>
 
     {% endfor %}</ol><br>
-  Effect of Payload : <ol> {% for effect in results['effect_of_payload'] %}
+  Effect of Payload : <ol> {% for effect in results[link]['effect_of_payload'] %}
     <li style="background-color: burlywood;"> {{ effect }} </li>
     {% endfor %} </ol> <br>
-  Location of Malicious Script: <ol> {% for location in results['script_location'] %}
+  Location of Malicious Script: <ol> {% for location in results[link]['script_location'] %}
     <li style="background-color: burlywood;"> {{location}} </li>
     {% endfor %}</ol> <br>
-  Possible Entry Point : <ol> {% for entry_point in results['possible_entry_point'] %}
+  Possible Entry Point : <ol> {% for entry_point in results[link]['possible_entry_point'] %}
     <li style="background-color: burlywood;"> {{entry_point}} </li>
     {% endfor %}</ol> <br>
-  Remedy of Cross-Site Scripting Exploitation :<ol>{% for remedy in results['remedy'] %}
+  Remedy of Cross-Site Scripting Exploitation :<ol>{% for remedy in results[link]['remedy'] %}
     <li style="background-color: burlywood;"> {{remedy}} </li>
     {% endfor %}</ol> <br> <br>
   {%  endif %}
+  {% endfor %}
   <p>&nbsp<br><a href={{ url_for('index') }} ><button value="New Scan">New Scan</button></a>
   <button value="Print"> Print </button>
   

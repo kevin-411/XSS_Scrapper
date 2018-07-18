@@ -15,17 +15,24 @@ app = Flask(__name__)
 
 #come up with way of calculating the progress across scans
 
+list_of_links = ['']
+
 def link_iterator(url):
     scan = Scanner()
     results_list = []
+    global list_of_links
     list_of_links = scan.link_iterator(url)
     if url not in list_of_links:
         list_of_links.append(url)
     if not list_of_links:
         return False
+    get_links_list(list_of_links)
     for link in list_of_links:
         results_list.append(mainFunc(link))
     return results_list
+
+def get_links_list(list_of_links):
+    return list_of_links
     
 def mainFunc(link):    
     scanx = Scanner()
@@ -85,15 +92,18 @@ def link():
         link = request.form['url']
         try:
             scan_domain = request.form['domain_search']
+            links = list_of_links
+            print("links = ", links)
         except:
             scan_domain = False
+            links = [link]
         if not scan_domain:
-            results = mainFunc(link)
+            results = [mainFunc(link)]
         else:
             results = link_iterator(link)
         if results is False:
             return render_template('500.html'), 500
-        return render_template('result.html', results=results)
+        return render_template('result.html', results=results, links=links, links_len=len(links))
             
 
 @app.errorhandler(404)
