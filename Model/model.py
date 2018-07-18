@@ -124,15 +124,15 @@ try:
         cursor = db.cursor()
         cursor.execute("SELECT * FROM scan_report WHERE url = ?", (url,))
         fields = cursor.fetchone()
-        return fields[0] if fields is not None else None
+        return fields if fields is not None else None
     
     def get_positive_scan_report(url):
         connect()
-        db = sqlite.connect(filename)
+        db = sqlite3.connect(filename)
         cursor = db.cursor()
         cursor.execute("SELECT * FROM positive_scan WHERE url = ?", (url, ))
         fields = cursor.fetchone()
-        return fields[0] if fields is not None else None
+        return fields if fields is not None else None
 
     def get_payloads():
         connect()
