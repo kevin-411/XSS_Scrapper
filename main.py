@@ -15,6 +15,18 @@ app = Flask(__name__)
 
 #come up with way of calculating the progress across scans
 
+def link_iterator(url):
+    scan = Scanner()
+    results_list = []
+    list_of_links = scan.link_iterator(url)
+    if url not in list_of_links:
+        list_of_links.append(url)
+    if not list_of_links:
+        return False
+    for link in list_of_links:
+        results_list.append(mainFunc(link))
+    return results_list
+    
 def mainFunc(link):    
     scanx = Scanner()
     url = link
@@ -25,8 +37,20 @@ def mainFunc(link):
     scanned_earlier = scanx.check_if_scanned(url)
     if scanned_earlier:        
         results = get_negative_scan_report(url)
-        results2 = get_positive_scan_report(url)
-        return results2 if results2 is not None else results
+        results3 = {}
+        try:
+            results2 = get_positive_scan_report(url)
+            results3['xss_result'] = "Positive"
+            results3['link'] = [results2[2]]
+            results3['payload_used'] = [results2[3]]
+            results3['effect_of_payload'] = [results2[5]]
+            results3['script_location'] = ['location x']
+            results3['possible_entry_point'] = ['point x']
+            results3['remedy'] = [results2[6]]
+        except :
+            results2 = None
+        print("Results  = ", results , " Results2 = ", results2, " Results3 = ", results3)
+        return results3 if results2 is not None else results
     print("url scan check complete *****")
     html = scanx.scrap_page(url)
     print("page scrap complete *****")
@@ -59,7 +83,14 @@ def link():
         return render_template('index.html')
     else:
         link = request.form['url']
-        results = mainFunc(link)
+        try:
+            scan_domain = request.form['domain_search']
+        except:
+            scan_domain = False
+        if not scan_domain:
+            results = mainFunc(link)
+        else:
+            results = link_iterator(link)
         if results is False:
             return render_template('500.html'), 500
         return render_template('result.html', results=results)
