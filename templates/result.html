@@ -1,22 +1,37 @@
 {%extends 'base.html'%} 
 {% block content %}
-Links = <a href="{{results['link']}}">{{results['link']}}</a> <br><p>
-XSS_result = {{results['xss_result']}} <br><p>{% if results.__len__()>2 %}
-payload_used = <ol> {% for payload in results['payload_used'] %}
-
-<li> {{ payload }} </li>
-
-{% endfor %}</ol><br>
-effect_of_payload = <ol> {% for effect in results['effect_of_payload'] %} <li> {{ effect }} </li> {% endfor %} </ol> <br>
-location of malicious script = <ol> {% for location in results['script_location'] %} <li> {{location}} </li> {% endfor %}</ol> <br>
-possible entry point = {{results['possible_entry_point']}} <br>
-remedy = {{results['remedy']}} <br>
-{%  endif %}
-<a href={{ url_for('index') }} ><button value="New Scan">New Scan</button></a>
-<button value="Print"> Print </button>
+Links = <a href="{{results['link']}}">{{results['link']}}</a> <br>&nbsp<br>
+{% if results['xss_result']=="Positive" %}
+<p style="background-color: red;" >
+  {% else %}
+<p style="background-color: green;" >
   
-{%endblock%}
+  {%  endif %}
 
-{% block footer %}
+  XSS_result = {{results['xss_result']}}</p> <br>&nbsp<br><p>{% if results.__len__()>2 %}
+  Payload Used : <ol> {% for payload in results['payload_used'] %}
 
-{%endblock%}
+    <li style="background-color: burlywood;"> {{ payload }} </li>
+
+    {% endfor %}</ol><br>
+  Effect of Payload : <ol> {% for effect in results['effect_of_payload'] %}
+    <li style="background-color: burlywood;"> {{ effect }} </li>
+    {% endfor %} </ol> <br>
+  Location of Malicious Script: <ol> {% for location in results['script_location'] %}
+    <li style="background-color: burlywood;"> {{location}} </li>
+    {% endfor %}</ol> <br>
+  Possible Entry Point : <ol> {% for entry_point in results['possible_entry_point'] %}
+    <li style="background-color: burlywood;"> {{entry_point}} </li>
+    {% endfor %}</ol> <br>
+  Remedy of Cross-Site Scripting Exploitation :<ol>{% for remedy in results['remedy'] %}
+    <li style="background-color: burlywood;"> {{remedy}} </li>
+    {% endfor %}</ol> <br> <br>
+  {%  endif %}
+  <p>&nbsp<br><a href={{ url_for('index') }} ><button value="New Scan">New Scan</button></a>
+  <button value="Print"> Print </button>
+  
+  {%endblock%}
+
+  {% block footer %}
+
+  {%endblock%}
