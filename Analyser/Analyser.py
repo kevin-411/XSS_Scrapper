@@ -100,10 +100,10 @@ class Analyser:
         link = self.url
         payload_used = self.discovered_xss
         effect_of_payload = self.effect_of_js
-        script_location = "position x"
-        possible_entry_point = "point x"
+        script_location = ["position x"]
+        possible_entry_point = ["point x"]
         remedy = self.remedy
-        time_value = time.strftime("%d/%m/%Y %H:%M:%S")
+        time_value = time.strftime("%d/%m/%Y %H:%M:%S %Z")
         print("payload_used ===>>> ", payload_used)
         if self.discovered_xss:
             xss_result = "Positive"
