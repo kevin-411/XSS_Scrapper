@@ -27,8 +27,9 @@ def link_iterator(url):
     if not list_of_links:
         return False
     get_links_list(list_of_links)
+    print("links = ******************************************", list_of_links)
     for link in list_of_links:
-        results_list.append(mainFunc(link))
+        results_list.append(mainFunc(link))    
     return results_list
 
 def get_links_list(list_of_links):
@@ -47,13 +48,14 @@ def mainFunc(link):
         results3 = {}
         try:
             results2 = get_positive_scan_report(url)
+            
             results3['xss_result'] = "Positive"
             results3['link'] = [results2[2]]
             results3['payload_used'] = [results2[3]]
-            results3['effect_of_payload'] = [results2[5]]
-            results3['script_location'] = ['location x']
+            results3['effect_of_payload'] = [results2[6]]
+            results3['script_location'] = [results2[5]]
             results3['possible_entry_point'] = ['point x']
-            results3['remedy'] = [results2[6]]
+            results3['remedy'] = [results2[7]]
         except :
             results2 = None
         print("Results  = ", results , " Results2 = ", results2, " Results3 = ", results3)
@@ -93,7 +95,7 @@ def link():
         try:
             scan_domain = request.form['domain_search']
             links = list_of_links
-            print("links = ", links)
+            print("links = ******************************************", links)
         except:
             scan_domain = False
             links = [link]
@@ -103,7 +105,8 @@ def link():
             results = link_iterator(link)
         if results is False:
             return render_template('500.html'), 500
-        return render_template('result.html', results=results, links=links, links_len=len(links))
+        print(results)
+        return render_template('result.html', results=results, links=links, links_len=len(results))
             
 
 @app.errorhandler(404)
