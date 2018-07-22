@@ -4,6 +4,7 @@ from urllib.error import HTTPError
 from Model.model import *
 import time
 import re
+import hashlib
 
 class Scanner:
     """
@@ -20,6 +21,8 @@ class Scanner:
         self.password = password
         print("attempting db connection")
         self.pages = []
+        self.current_hash = ''
+        self.initial_hash = ''
 
     def link_iterator(self, url):        
         if not self.check_url(url):
@@ -68,29 +71,30 @@ class Scanner:
             return False
         else:
             print("url approved, looking up db")
-            if html.getheader('last-modified'):
-                last_modified = html.getheader('last-modified')
-            else:
-                last_modified = html.getheader('date')
-            last_modified = time.strptime(last_modified, '%a, %d %b %Y %H:%M:%S %Z')
-            self.last_modified = time.strftime("%d/%m/%Y %H:%M:%S %Z", last_modified)            
+            page_hash = hashlib.sha224(html.read()).hexdigest()            
+            self.current_hash = page_hash
             return self.url
 
     #checks if url has already been scanned, and if so, compares scan date with last modification date
     def check_if_scanned(self, url):
         #to do the whole last_modified thing, we could get away with calculating the page's hash during an initial scan, then comparing this against subsequent scans to check against any modifications in the page
-        print("Scan date is ====>", get_scan_date(url))
-        last_modified = time.strptime(self.last_modified, "%d/%m/%Y %H:%M:%S %Z")
-        try:
-            scan_date = time.strptime(get_scan_date(url), "%d/%m/%Y %H:%M:%S %Z")
-        except TypeError:
-            scan_date = None
-        if scan_date and get_url(url) and last_modified >= scan_date:
+        print("Initial hash is  ====>", get_initial_hash(url))
+        print("Current hash is ", self.current_hash)
+        #last_modified = time.strptime(self.last_modified, "%d/%m/%Y %H:%M:%S %Z")
+        current_hash = self.current_hash
+        get_initial_hash(url)
+        if not get_initial_hash(url):
+            self.initial_hash = current_hash
+        else:
+            self.initial_hash = get_initial_hash(url)
+        print("Initial hash is now ", self.initial_hash)
+        if get_url(url) and self.initial_hash == current_hash:
             print("page not modified since last scan")
            # print(get_report(url))
             return True
         else:           
             print("no recent scan found, beginning scraping")
+            self.initial_hash = current_hash
             return False
             
 
@@ -98,9 +102,14 @@ class Scanner:
     def scrap_page(self, url):
         html = urlopen(url)
         bsObj = BeautifulSoup(html.read(), "html.parser")
-        last_modified = self.last_modified
-        scan_date = time.strftime("%d/%m/%Y %H:%M:%S %Z")
-        insert_scan(url, scan_date, last_modified)
+        #last_modified = self.last_modified
+        #current_hash = hashlib.sha224(html.read()).hexdigest()
+        current_hash = self.current_hash
+        print("current hash is ==============>", current_hash)
+        print("previous hash is ===============>", self.initial_hash)
+        
+        scan_date = time.strftime("%d/%m/%Y %H:%M:%S %Z")               
+        insert_scan(url, scan_date, current_hash, self.initial_hash)
         print("scrapping complete, beginning js extraction")
         page_html = bsObj.prettify()
         return page_html
