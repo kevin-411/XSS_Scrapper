@@ -82,13 +82,14 @@ class Analyser:
                         except:
                             continue                            
                         self.code_index.append(self.get_script_location(url,code))
+                        current_code_index = self.get_script_location(url,code)
                         string = re.findall(xss_payload_regex, js_code2)[0]
                         effect_of_js = get_effect_of_js(xss_payload_regex)
                         remedy = "Enter line number of problematic code"
                         self.discovered_xss.append(self.tokens[code_index])
                         self.effect_of_js.append(effect_of_js)
                         self.remedy.append(remedy)
-                        insert_positive_scan(get_scan_id(self.url), self.url, string, code, effect_of_js, remedy)
+                        insert_positive_scan(get_scan_id(self.url), self.url, string, code, current_code_index, effect_of_js, remedy)
                         #print("Positive=====")
                     else:
                         #print("Negative-----")
@@ -96,9 +97,9 @@ class Analyser:
 
     def get_script_location(self, url, script):
         html = urlopen(url).read().decode(encoding='utf-8')
-        print("html is ", html)
+        #print("html is ", html)
         html_code_list = html.split("\n")
-        print("html code list: ", html_code_list)
+        #print("html code list: ", html_code_list)
         
         for html_line in html_code_list:
             #print("Checking if ", script, " in ", html_line)
