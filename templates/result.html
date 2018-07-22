@@ -1,16 +1,27 @@
 {%extends 'base.html'%} 
 {% block content %}
+
+Number of links is {{links_len}}
 {% for link in range(links_len) %}
 
-{{ link+1 }}. Link = <a href="{{results[link]['link']}}">{{results[link]['link']}}</a> <br>&nbsp<br>
+{{ link+1 }}. Link =
+
+{% if results[link]['xss_result']!="Positive"%}
+<a href="{{results[link][1]}}"> {{results[link][1]}}</a> <br>&nbsp<br> 
+  {% else %}
+<a href="{{results[link]['link']}}">{{results[link]['link']}}</a> <br>&nbsp<br>  
+  {%  endif %}
+  
+
 {% if results[link]['xss_result']=="Positive" %}
 <p style="background-color: red;" >
+  XSS_result = {{results[link]['xss_result']}}</p> <br>&nbsp<br><p>
   {% else %}
 <p style="background-color: green;" >
-  
+XSS_result = {{results[link][2]}}</p> <br>&nbsp<br><p>
   {%  endif %}
 
-  XSS_result = {{results[link]['xss_result']}}</p> <br>&nbsp<br><p>{% if results[link].__len__()>2 %}
+  {% if results[link]['xss_result']=="Positive" %}
   Payload Used : <ol> {% for payload in results[link]['payload_used'] %}
 
     <li style="background-color: burlywood;"> {{ payload }} </li>
