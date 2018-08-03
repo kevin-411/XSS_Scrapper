@@ -10,8 +10,7 @@ class Scanner:
     """
     Responsible for getting the URL from the user, along with other specifications user may specify. Will then check the date the page was last modified, and check if the page was processed before. It extracts javascript from the page
     """
-
-    
+ 
        
     def __init__(self, scan_domain=False, username="", password="", last_modified="" ):
         self.url = ""
@@ -19,12 +18,13 @@ class Scanner:
         self.scan_domain = scan_domain
         self.username = username
         self.password = password
-        print("attempting db connection")
+        #print("attempting db connection")
         self.pages = []
         self.current_hash = ''
         self.initial_hash = ''
 
-    def link_iterator(self, url):        
+    #to generate a list of links available in a particular webpage
+    def link_iterator(self, url):
         if not self.check_url(url):
             return False
         html = urlopen(url)
@@ -37,17 +37,15 @@ class Scanner:
             links_in_current_page = links1
         except:
             links_in_current_page = links2
-        print("current link: ",url)
+        #print("current link: ",url)
         for link in links_in_current_page:
             if 'href' in link.attrs:
                 try:
                     links1[0].split()
                     newPage = link.attrs['href']                    
                 except:
-                    newPage = url.split("//")[0]+"//"+domain_name+link.attrs['href']
-            
-                if newPage not in self.pages:                   
-                    print(newPage)
+                    newPage = url.split("//")[0]+"//"+domain_name+link.attrs['href']            
+                if newPage not in self.pages: 
                     self.pages.append(newPage)
                     self.link_iterator(newPage)
         return self.pages
@@ -59,67 +57,54 @@ class Scanner:
             html = urlopen(url)
             self.url = url
         except HTTPError as e:
-            print(url, " 404, page not found")
+            #print(url, " 404, page not found")
             html = None
         except ValueError as e:
-            print(url, " invalid url")
-            html = None
-            
+            #print(url, " invalid url")
+            html = None            
         if html is None:
-            print(url, " page not found")
+            #print(url, " page not found")
             self.url = ""
             return False
         else:
-            print("url approved, looking up db")
+            #print("url approved, looking up db")
             page_hash = hashlib.sha224(html.read()).hexdigest()            
             self.current_hash = page_hash
             return self.url
 
-    #checks if url has already been scanned, and if so, compares scan date with last modification date
+    #checks if url has already been scanned, and if so, compares current_hash with previous hash
     def check_if_scanned(self, url):
-        #to do the whole last_modified thing, we could get away with calculating the page's hash during an initial scan, then comparing this against subsequent scans to check against any modifications in the page
-        print("Initial hash is  ====>", get_initial_hash(url))
-        print("Current hash is ", self.current_hash)
-        #last_modified = time.strptime(self.last_modified, "%d/%m/%Y %H:%M:%S %Z")
-        current_hash = self.current_hash
         get_initial_hash(url)
         if not get_initial_hash(url):
-            self.initial_hash = current_hash
+            self.initial_hash = self.current_hash
         else:
             self.initial_hash = get_initial_hash(url)
-        print("Initial hash is now ", self.initial_hash)
-        if get_url(url) and self.initial_hash == current_hash:
-            print("page not modified since last scan")
-           # print(get_report(url))
-            return True
+        #print("Initial hash is now ", self.initial_hash)
+        if get_url(url) and self.initial_hash == self.current_hash:
+            #print("page not modified since last scan")
+            #return True
+            return False
         else:           
-            print("no recent scan found, beginning scraping")
-            self.initial_hash = current_hash
+            #print("no recent scan found, beginning scraping")
+            self.initial_hash = self.current_hash
             return False
             
-
     #scraps page pointed to by url
     def scrap_page(self, url):
         html = urlopen(url)
         bsObj = BeautifulSoup(html.read(), "html.parser")
-        #last_modified = self.last_modified
-        #current_hash = hashlib.sha224(html.read()).hexdigest()
         current_hash = self.current_hash
-        print("current hash is ==============>", current_hash)
-        print("previous hash is ===============>", self.initial_hash)
-        
         scan_date = time.strftime("%d/%m/%Y %H:%M:%S %Z")               
         insert_scan(url, scan_date, current_hash, self.initial_hash)
-        print("scrapping complete, beginning js extraction")
+        #print("scrapping complete, beginning js extraction")
         page_html = bsObj.prettify()
         return page_html
 
     #function moved from analyser component
     def deobfuscate(self,page_html):        
-        #theres also superflous use of escape characters
-      
+        #theres also superflous use of escape characters      
         #the deobfuscation should ideally be done multiple times
-        print("attempting preliminary deobfuscation")
+        #print("attempting preliminary deobfuscation")
         clean_block = ""
         html_code = page_html
         for code in html_code.split(" "):            
@@ -130,7 +115,7 @@ class Scanner:
             if unicode_escape_re or html_encode_re or null_byte_re or char_code_re:
                 self.obfuscated = True
                 if not html_encode_re and not unicode_escape_re:                    
-                    print("unsuported obfuscation =>>", code)
+                    #print("unsuported obfuscation =>>", code)
                     code2 = code
                 else:
                     print("found ==>", code)
@@ -148,11 +133,9 @@ class Scanner:
                         else:
                             new_code = chr(eval(old_code))                    
                     code2 = code.replace("\\"+old_code+"c", new_code)
-                    print(code, " transformed to ==> ", code2)
-
+                    #print(code, " transformed to ==> ", code2)
             else:
-                code2 = code
-                
+                code2 = code                
             clean_block = clean_block + code2.lower() + " "
         return clean_block 
         
@@ -162,24 +145,23 @@ class Scanner:
         self.page_html = bsObj.prettify()
         self.scripts = []
         self.script = bsObj.findAll('script')
-        print("getting page js from page: \n")
+        #print("getting page js from page: \n")
         if self.script:
-            print("scripts include: ")
+            #print("scripts include: ")
             for script in self.script:
-                print(script.get_text())
+                #print(script.get_text())
                 self.scripts.append(script.get_text())
         tags = bsObj.findAll(lambda tag: len(tag.attrs) >0, recursive=False)
         attributes = ["onreadystatechange","onpropertychange","onbeforeactivate","onactivatein","onfocusin","onscroll","onmousemove","onmouseover", "onblur", "onload", "onerror","data","src","formaction"]
-        print("tags with attributes include: ")
+        #print("tags with attributes include: ")
         for tag in tags:
             for attribute in attributes:
                 if attribute in str(tag):
                     try:
                         script = str(tag).split(attribute)[1].split(">")[0].split("=")[1].split(" ")[0]
                         self.scripts.append(script)
-                        print("Script is ", script)
+                        #print("Script is ", script)
                     except IndexError:
                         continue
-                    
         return self.scripts
       

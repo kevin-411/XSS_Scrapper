@@ -1,21 +1,104 @@
-{%extends 'base.html'%} 
+{%extends 'base.html'%}
 {% block content %}
 <form action="link" method="post" enctype="multipart/form-data">        
-  <input maxlength="256" autocomplete="off" type="url" class="link" name="url" required placeholder="Enter domain to scan"><br>
+  <input maxlength="256" autocomplete="off" type="url" class="link" name="url" required placeholder="Enter domain to scan" id="link"><br>
   <input type="checkbox" name="domain_search" value="true" autocomplete="off"> Search Entire Domain<br>
   <input maxlength="256" autocomplete="off" type="search" class="link_creds" name="url_creds" placeholder="Enter site username">
   <input maxlength="256" autocomplete="off" type="password" class="link_creds" name="url_creds" placeholder="Enter site password">
-  <input type="submit" value="Upload">
+  <input type="submit" value="Upload" >
 </form>
 
 {%endblock%}
 
 {% block footer %}
-<div class="progress progress-striped active">
-  <div class="progress-bar progress-bar-success" role="progressbar" 
-       aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" 
-       style="width: 40%;">
-    <span class="sr-only">40% Complete</span>
-  </div>
+<script type=text/javascript>
+
+</script>
+<script type=text/javascript>
+  function move(jump_ratio, max_limit, width_given) {
+  var elem = document.getElementById("myBar");
+  var width = width_given;
+  var id = setInterval(frame, jump_ratio);
+  function frame() {
+  if (width >= max_limit) {
+  clearInterval(id);
+  } else {
+  width++;
+  elem.style.width = width + '%';
+  }
+  }
+  }
+  
+  function receive_data(data){
+  //$("#myBar").html(data)
+  $("#index").html(data[1])
+  $("#indices").html(data[0])
+  var jump_ratio = 10
+  var max_limit = 100
+  var width = 90
+  if (data[10] > 0){
+  max_limit = 100
+  width = 99
+  } else if (data[9] > 0) {
+  width = 98
+  max_limit = 99
+  } else if (data[8] > 0) {
+  max_limit = 98
+  width = 97
+  } else if (data[7] > 0) {
+  max_limit = 97
+  width = 96
+  } else if (data[6] > 0) {
+  max_limit = 96
+  width = 34
+  jump_ratio = 100
+  } else if (data[5] > 0) {
+  max_limit = 34
+  width = 21
+  } else if (data[4] > 0) {
+  max_limit = 21
+  width = 2
+  } else if (data[3] > 0) {
+  max_limit = 2
+  width = 1
+  } else {
+  max_limit = 1
+  width = 0
+  } 
+  console.log(data)
+  move(jump_ratio, max_limit, width);
+  }
+
+  function send_hello(jqevent) {
+  //$.getJSON("/ajax", {}, receive_data)
+  setInterval(ajax_call, 100)
+  console.log("running hello")
+  }
+
+  function ajax_call (){
+  $.ajax({
+            type: "GET",
+            url: "/ajax",
+            success: receive_data,
+            error: function() {
+                console.log();
+            }
+  });
+  }
+
+
+  $( document ).ready(function() {
+  $( "#link" ).focus(send_hello);
+  });
+
+  //console.log(data)
+  
+</script>
+<div style="font: 16px/26px Helvetica, Helvetica Neue, Arial;">
+  <div id="index" style="display:inline">1</div> of <div id="indices" style="display:inline">1</div>
+</div>
+
+<div id="myProgress" style="width:100%; background-color: grey">
+  <div id="myBar" style="width: 1%; height: 30px; background-color: green; "></div>
 </div>
 {%endblock%}
