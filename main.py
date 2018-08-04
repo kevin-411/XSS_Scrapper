@@ -22,10 +22,10 @@ def link_iterator(url):
     results_list = []
     global list_of_links
     list_of_links = scan.link_iterator(url)
-    if url not in list_of_links:
-        list_of_links.append(url)
     if not list_of_links:
         return False
+    if url not in list_of_links:
+        list_of_links.append(url)    
     get_links_list(list_of_links)
     print("links = ******************************************", list_of_links)
     for link in list_of_links:
@@ -103,6 +103,8 @@ def link():
             results = [mainFunc(link)]
         else:
             results = link_iterator(link)
+            if not results:
+                results = [mainFunc(link)]
         if results is False:
             return render_template('500.html'), 500
         print(results)

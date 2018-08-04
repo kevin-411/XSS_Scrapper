@@ -64,6 +64,8 @@ class Scanner:
         except ValueError as e:
             print(url, " invalid url")
             html = None
+        except :
+            html = None
             
         if html is None:
             print(url, " page not found")
