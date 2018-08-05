@@ -17,7 +17,7 @@ app = Flask(__name__)
 
 list_of_links = ['']
 
-def link_iterator(url, username, password):
+def link_iterator(url, parameters):
     scan = Scanner()
     results_list = []
     global list_of_links
@@ -29,7 +29,7 @@ def link_iterator(url, username, password):
     get_links_list(list_of_links)
     print("links = ******************************************", list_of_links)
     for link in list_of_links:
-        results = mainFunc(link, username, password)
+        results = mainFunc(link, parameters)
         if "Error Occurred" in results:
             error_message = results[1]
             results = {}
@@ -41,8 +41,8 @@ def link_iterator(url, username, password):
 def get_links_list(list_of_links):
     return list_of_links
     
-def mainFunc(link, username, password):    
-    scanx = Scanner(username, password)
+def mainFunc(link, parameters):    
+    scanx = Scanner(parameters)
     url = link
     results = {}
     check_validity_response = scanx.check_url(url)
@@ -100,30 +100,38 @@ def link():
         link = request.form['url']
         
         try:
+            username_field = request.form['username_field']
             username = request.form['username']
         except:
+            username_field = False
             username = False
             
         try:
+            password_field = request.form['password_field']
             password = request.form['password']            
         except:
+            password_field = False
             password = False
             
         try:
             scan_domain = request.form['domain_search']
             links = list_of_links
-            print("links = ******************************************", links)
         except:
             scan_domain = False
             links = [link]
+
+        if username_field and username and password_field and password:
+            parameters = {username_field:username, password_field:password}
+        else:
+            parameters = None
         if not scan_domain:
-            results = [mainFunc(link, username, password)]
+            results = [mainFunc(link, parameters)]
             if "Error Occurred" in results[0]:
                 return render_template('500.html', message = results[0][1]), 500
         else:
-            results = link_iterator(link, username, password)
+            results = link_iterator(link, parameters)
             if not results:
-                results = [mainFunc(link, username, password)]
+                results = [mainFunc(link, parameters)]
                 if "Error Occurred" in results[0]:
                     return render_template('500.html', message = results[0][1]), 500
         print(results)

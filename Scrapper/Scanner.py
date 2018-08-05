@@ -9,10 +9,9 @@ class Scanner:
 
     
        
-    def __init__(self, username=None, password=None):
+    def __init__(self, parameters=None):
         self.url = ""
-        self.username = username
-        self.password = password
+        self.parameters = parameters
         self.pages = []
         self.current_hash = ''
         self.initial_hash = ''
@@ -53,9 +52,10 @@ class Scanner:
             session = requests.Session()
             headers = {"User-Agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5)AppleWebKit 537.36 (KHTML, like Gecko) Chrome","Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"}
             #html = session.get(url, timeout=7)
-            if self.username and self.password:
-                session.auth(username, password)
-            html = session.get(url, timeout=7)
+            if self.parameters:
+                html = session.post(url, self.parameters)              
+            else:
+                html = session.get(url, timeout=7)
             self.html = html.content
             html.raise_for_status()
         except requests.exceptions.ConnectionError as e:
