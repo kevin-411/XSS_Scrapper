@@ -1,6 +1,6 @@
 import re
 from Model.model import *
-from urllib.request import urlopen
+import requests
 import time
 
 class Analyser:
@@ -96,7 +96,7 @@ class Analyser:
                         continue
 
     def get_script_location(self, url, script):
-        html = urlopen(url).read().decode(encoding='utf-8')
+        html = requests.get(url).text
         #print("html is ", html)
         html_code_list = html.split("\n")
         #print("html code list: ", html_code_list)

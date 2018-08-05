@@ -17,7 +17,7 @@ app = Flask(__name__)
 
 list_of_links = ['']
 
-def link_iterator(url):
+def link_iterator(url, username, password):
     scan = Scanner()
     results_list = []
     global list_of_links
@@ -29,37 +29,43 @@ def link_iterator(url):
     get_links_list(list_of_links)
     print("links = ******************************************", list_of_links)
     for link in list_of_links:
-        results_list.append(mainFunc(link))    
+        results = mainFunc(link, username, password)
+        if "Error Occurred" in results:
+            error_message = results[1]
+            results = {}
+            results['link'] = link
+            results['xss_result'] = error_message
+        results_list.append(results)    
     return results_list
 
 def get_links_list(list_of_links):
     return list_of_links
     
-def mainFunc(link):    
-    scanx = Scanner()
+def mainFunc(link, username, password):    
+    scanx = Scanner(username, password)
     url = link
-    valid_url = scanx.check_url(url)
-    if not valid_url:
-        return False
+    results = {}
+    check_validity_response = scanx.check_url(url)
+    if "Error Occurred" in check_validity_response:
+        return check_validity_response
     print("URL approved *****")
     scanned_earlier = scanx.check_if_scanned(url)
     if scanned_earlier:        
-        results = get_negative_scan_report(url)
-        results3 = {}
+        negative_results = get_negative_scan_report(url)        
         try:
-            results2 = get_positive_scan_report(url)
-            
-            results3['xss_result'] = "Positive"
-            results3['link'] = [results2[2]]
-            results3['payload_used'] = [results2[3]]
-            results3['effect_of_payload'] = [results2[6]]
-            results3['script_location'] = [results2[5]]
-            results3['possible_entry_point'] = ['point x']
-            results3['remedy'] = [results2[7]]
+            positive_results = get_positive_scan_report(url)           
+            results['xss_result'] = "Positive"
+            results['link'] = [positive_results[2]]
+            results['payload_used'] = [positive_results[3]]
+            results['effect_of_payload'] = [positive_results[6]]
+            results['script_location'] = [positive_results[5]]
+            results['possible_entry_point'] = ['point x']
+            results['remedy'] = [positive_results[7]]
         except :
-            results2 = None
-        print("Results  = ", results , " Results2 = ", results2, " Results3 = ", results3)
-        return results3 if results2 is not None else results
+            results['link'] = negative_results[1]
+            results['xss_result'] = negative_results[2]        
+        return results
+    
     print("url scan check complete *****")
     html = scanx.scrap_page(url)
     print("page scrap complete *****")
@@ -92,6 +98,17 @@ def link():
         return render_template('index.html')
     else:
         link = request.form['url']
+        
+        try:
+            username = request.form['username']
+        except:
+            username = False
+            
+        try:
+            password = request.form['password']            
+        except:
+            password = False
+            
         try:
             scan_domain = request.form['domain_search']
             links = list_of_links
@@ -100,13 +117,15 @@ def link():
             scan_domain = False
             links = [link]
         if not scan_domain:
-            results = [mainFunc(link)]
+            results = [mainFunc(link, username, password)]
+            if "Error Occurred" in results[0]:
+                return render_template('500.html', message = results[0][1]), 500
         else:
-            results = link_iterator(link)
+            results = link_iterator(link, username, password)
             if not results:
-                results = [mainFunc(link)]
-        if results is False:
-            return render_template('500.html'), 500
+                results = [mainFunc(link, username, password)]
+                if "Error Occurred" in results[0]:
+                    return render_template('500.html', message = results[0][1]), 500
         print(results)
         return render_template('result.html', results=results, links=links, links_len=len(results))
             

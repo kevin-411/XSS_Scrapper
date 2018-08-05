@@ -1,10 +1,6 @@
 from bs4 import BeautifulSoup
-from urllib.request import urlopen
-from urllib.error import HTTPError
+import requests, time, re, hashlib
 from Model.model import *
-import time
-import re
-import hashlib
 
 class Scanner:
     """
@@ -13,22 +9,20 @@ class Scanner:
 
     
        
-    def __init__(self, scan_domain=False, username="", password="", last_modified="" ):
+    def __init__(self, username=None, password=None):
         self.url = ""
-        self.last_modified = last_modified
-        self.scan_domain = scan_domain
         self.username = username
         self.password = password
-        print("attempting db connection")
         self.pages = []
         self.current_hash = ''
         self.initial_hash = ''
+        self.html = None
+        self.error_message = ''
 
     def link_iterator(self, url):        
-        if not self.check_url(url):
+        if "Error Occurred" in self.check_url(url):
             return False
-        html = urlopen(url)
-        bsObj = BeautifulSoup(html.read(), "html.parser")
+        bsObj = BeautifulSoup(self.html, "html.parser")
         domain_name = url.split("//")[1].split("/")[0]
         links1 = bsObj.findAll("a", href=re.compile("^("+domain_name+")"))
         links2 = bsObj.findAll("a", href=re.compile("^[/.][a-zA-Z]"))
@@ -53,29 +47,44 @@ class Scanner:
         return self.pages
                 
     #to retrieve the url to be scanned, checks if it is valid, and link is active
-    def check_url(self, url):
-        #we need to come up with a way of handling page redirects
+
+    def get_html(self, url):
         try:
-            html = urlopen(url)
-            self.url = url
-        except HTTPError as e:
-            print(url, " 404, page not found")
-            html = None
-        except ValueError as e:
-            print(url, " invalid url")
-            html = None
-        except :
-            html = None
-            
-        if html is None:
-            print(url, " page not found")
+            session = requests.Session()
+            headers = {"User-Agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5)AppleWebKit 537.36 (KHTML, like Gecko) Chrome","Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"}
+            #html = session.get(url, timeout=7)
+            if self.username and self.password:
+                session.auth(username, password)
+            html = session.get(url, timeout=7)
+            self.html = html.content
+            html.raise_for_status()
+        except requests.exceptions.ConnectionError as e:
+            self.error_message = "Connection Error"
+            self.html = None
+        except requests.exceptions.HTTPError as e:
+            self.error_message =  "Page not Found"
+            self.html = None
+        except requests.exceptions.Timeout as e:
+            self.error_message = "Request Timeout"
+            self.html = None
+        except requests.exceptions.TooManyRedirects as e:
+            self.error_message = "Too many Redirects"
+            self.html = None
+    
+        return self.html
+        
+    def check_url(self, url):
+        #we need to come up with a way of handling page redirects        
+        if self.get_html(url) is None:
             self.url = ""
-            return False
-        else:
+            return ["Error Occurred", self.error_message]
+        else:            
+            self.url = url
             print("url approved, looking up db")
-            page_hash = hashlib.sha224(html.read()).hexdigest()            
+            html = self.html
+            page_hash = hashlib.sha224(html).hexdigest()            
             self.current_hash = page_hash
-            return self.url
+            return "Success, Url Valid"
 
     #checks if url has already been scanned, and if so, compares scan date with last modification date
     def check_if_scanned(self, url):
@@ -102,8 +111,7 @@ class Scanner:
 
     #scraps page pointed to by url
     def scrap_page(self, url):
-        html = urlopen(url)
-        bsObj = BeautifulSoup(html.read(), "html.parser")
+        bsObj = BeautifulSoup(self.html, "html.parser")
         #last_modified = self.last_modified
         #current_hash = hashlib.sha224(html.read()).hexdigest()
         current_hash = self.current_hash

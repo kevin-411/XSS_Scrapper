@@ -6,20 +6,20 @@ Number of links is {{links_len}}
 
 {{ link+1 }}. Link =
 
-{% if not results[link]['xss_result'] %}
-<a href="{{results[link][1]}}"> {{results[link][1]}}</a> <br>&nbsp<br> 
-  {% else %}
 <a href="{{results[link]['link']}}">{{results[link]['link']}}</a> <br>&nbsp<br>  
-  {%  endif %}
   
 
 {% if results[link]['xss_result']=="Positive" %}
 <p style="background-color: red;" >
   XSS_result = {{results[link]['xss_result']}}</p> <br>&nbsp<br><p>
  
-  {% else %}
+  {% elif results[link]['xss_result']=="Negative"%}
 <p style="background-color: green;" >
   XSS_result = "Negative"</p> <br>&nbsp<br><p>
+
+  {% else %}
+<p style="background-color: orange;" >
+  XSS_result = {{results[link]['xss_result']}}</p> <br>&nbsp<br><p>
   
   {%  endif %}
 
