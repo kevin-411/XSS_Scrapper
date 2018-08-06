@@ -38,11 +38,9 @@ class Scanner:
             links_in_current_page = links1
         except IndexError:
             if len(links3)>0:
-                print("length of links 3 ", len(links3))
                 links_in_current_page = links3
             else: links_in_current_page = links2
-        except: links_in_current_page = links2
-        print("current link: ",url)
+        except: links_in_current_page = links2        
         for link in links_in_current_page:
             if 'href' in link.attrs:
                 try:
@@ -56,6 +54,7 @@ class Scanner:
                 if newPage not in self.pages:                   
                     print(newPage)
                     self.pages.append(newPage)
+                    print("current link: ",newPage, "\nlink ", self.pages.index(newPage)," of ", len(self.pages) )
                     self.link_iterator(newPage, recursion_level+1)
         return self.pages
                 
@@ -172,7 +171,7 @@ class Scanner:
         if self.script:
             print("scripts include: ")
             for script in self.script:
-                print(script.get_text())
+                #print(script.get_text())
                 self.scripts.append(script.get_text())
         tags = bsObj.findAll(lambda tag: len(tag.attrs) >0, recursive=False)
         attributes = ["onreadystatechange","onpropertychange","onbeforeactivate","onactivatein","onfocusin","onscroll","onmousemove","onmouseover", "onblur", "onload", "onerror","data","src","formaction"]
@@ -183,7 +182,7 @@ class Scanner:
                     try:
                         script = str(tag).split(attribute)[1].split(">")[0].split("=")[1].split(" ")[0]
                         self.scripts.append(script)
-                        print("Script is ", script)
+                        #print("Script is ", script)
                     except IndexError: continue
                     
         return self.scripts

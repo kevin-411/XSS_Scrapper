@@ -26,6 +26,7 @@ def link_iterator(url, parameters):
     get_links_list(list_of_links)
     print("links = ******************************************", list_of_links)
     for link in list_of_links:
+        print("current link: ",link, "\nlink ", list_of_links.index(link)," of ", len(list_of_links) )
         results = mainFunc(link, parameters)
         if "Error Occurred" in results:
             error_message = results[1]
