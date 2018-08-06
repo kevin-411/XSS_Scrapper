@@ -4,7 +4,6 @@ from Scrapper.Scanner import Scanner
 from Analyser.Analyser import Analyser
 from Reporter.Reporter import Reporter
 from Model.model import *
-import io 
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from werkzeug import secure_filename
 from flask_wtf import Form
@@ -18,14 +17,12 @@ app = Flask(__name__)
 list_of_links = ['']
 
 def link_iterator(url, parameters):
-    scan = Scanner()
+    scan = Scanner(parameters)
     results_list = []
     global list_of_links
-    list_of_links = scan.link_iterator(url)
-    if not list_of_links:
-        return False
-    if url not in list_of_links:
-        list_of_links.append(url)    
+    list_of_links = scan.link_iterator(url, 0)
+    if not list_of_links: return False
+    if url not in list_of_links: list_of_links.append(url)    
     get_links_list(list_of_links)
     print("links = ******************************************", list_of_links)
     for link in list_of_links:
@@ -38,16 +35,14 @@ def link_iterator(url, parameters):
         results_list.append(results)    
     return results_list
 
-def get_links_list(list_of_links):
-    return list_of_links
+def get_links_list(list_of_links): return list_of_links
     
 def mainFunc(link, parameters):    
     scanx = Scanner(parameters)
     url = link
     results = {}
     check_validity_response = scanx.check_url(url)
-    if "Error Occurred" in check_validity_response:
-        return check_validity_response
+    if "Error Occurred" in check_validity_response: return check_validity_response
     print("URL approved *****")
     scanned_earlier = scanx.check_if_scanned(url)
     if scanned_earlier:        
@@ -84,69 +79,55 @@ def mainFunc(link, parameters):
     results_ = analysis_x.update_report()
     print("report updating complete *****")
     report = Reporter(url, scripts)
-    results = report.get_results()
-    
+    results = report.get_results()    
     return results_
     
 @app.route('/')
-def index():
-    return render_template('index.html')
+def index(): return render_template('index.html')
 
 @app.route('/link', methods = ['GET', 'POST'])
 def link():
-    if request.method == 'GET':
-        return render_template('index.html')
+    if request.method == 'GET': return render_template('index.html')
     else:
-        link = request.form['url']
-        
+        link = request.form['url']        
         try:
             username_field = request.form['username_field']
             username = request.form['username']
         except:
             username_field = False
-            username = False
-            
+            username = False            
         try:
             password_field = request.form['password_field']
             password = request.form['password']            
         except:
             password_field = False
-            password = False
-            
+            password = False            
         try:
             scan_domain = request.form['domain_search']
             links = list_of_links
         except:
             scan_domain = False
             links = [link]
-
-        if username_field and username and password_field and password:
-            parameters = {username_field:username, password_field:password}
-        else:
-            parameters = None
+        if username_field and username and password_field and password: parameters = {username_field:username, password_field:password}
+        else: parameters = None
         if not scan_domain:
             results = [mainFunc(link, parameters)]
-            if "Error Occurred" in results[0]:
-                return render_template('500.html', message = results[0][1]), 500
+            if "Error Occurred" in results[0]: return render_template('500.html', message = results[0][1]), 500
         else:
             results = link_iterator(link, parameters)
             if not results:
                 results = [mainFunc(link, parameters)]
-                if "Error Occurred" in results[0]:
-                    return render_template('500.html', message = results[0][1]), 500
+                if "Error Occurred" in results[0]: return render_template('500.html', message = results[0][1]), 500
         print(results)
         return render_template('result.html', results=results, links=links, links_len=len(results))
             
 
 @app.errorhandler(404)
-def page_not_found(e):
-    return render_template('404.html'), 404
+def page_not_found(e): return render_template('404.html'), 404
 
 @app.errorhandler(500)
-def internal_server_error(e):
-    return render_template('500.html'), 500
+def internal_server_error(e): return render_template('500.html'), 500
 
-if __name__ == '__main__':
-    app.run( )
+if __name__ == '__main__': app.run( )
 
 
