@@ -33,13 +33,15 @@ class Scanner:
         domain_name = url.split("//")[1].split("/")[0]
         links1 = bsObj.findAll("a", href=re.compile("^("+domain_name+")"))
         links2 = bsObj.findAll("a", href=re.compile("^[/.][a-zA-Z]"))
-        links3 = bsObj.findAll("a", href=re.compile("^("+url.split("//")[0]+"//"+domain_name+")"))        
+        links3 = bsObj.findAll("a", href=re.compile("^("+url.split("//")[0]+"//"+domain_name+")"))
+        links4 = bsObj.findAll("a", href=re.compile("^[a-zA-Z]"))
+        print("++++++++++++++++", links1, links2, links3)
         try:
             links1[0].split()
             links_in_current_page = links1
         except IndexError:
-            if len(links3)>0:
-                links_in_current_page = links3
+            if len(links3)>0: links_in_current_page = links3
+            elif len(links4) > 0: links_in_current_page = links4
             else: links_in_current_page = links2
         except: links_in_current_page = links2        
         for link in links_in_current_page:
@@ -49,11 +51,15 @@ class Scanner:
                     newPage = link.attrs['href']                    
                 except IndexError:
                     if len(links3)>0: newPage = link.attrs['href']
-                    else: newPage = url.split("//")[0]+"//"+domain_name+link.attrs['href']
-                except: newPage = url.split("//")[0]+"//"+domain_name+link.attrs['href']
+                    elif len(links4) > 0: newPage = url.split("//")[0]+"//"+domain_name+"/"+url.split("//")[1].split("/")[1]+"/"+link.attrs['href']
+                    else: newPage = url.split("//")[0]+"//"+domain_name+"/"+url.split("//")[1].split("/")[1]+"/"+link.attrs['href']
+                    
+                except: newPage = url.split("//")[0]+"//"+domain_name+"/"+url.split("//")[1].split("/")[1]+"/"+link.attrs['href']
+                print("_____________", newPage)
             
                 if newPage not in self.pages:                   
                     print(newPage)
+                    if recursion_level > 10 or len(self.pages) > 10: return self.pages
                     self.pages.append(newPage)
                     print("current link: ",newPage, "\nlink ", self.pages.index(newPage)," of ", len(self.pages) )
                     self.link_iterator(newPage, recursion_level+1)
