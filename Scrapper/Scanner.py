@@ -26,7 +26,8 @@ class Scanner:
         retrieves all the links available in a particular page, 
         useful when a whole domain is to be scrapped
         """
-        if recursion_level > 90: return self.pages        
+        if recursion_level > 10 or len(self.pages) > 10: return self.pages
+        print(recursion_level, "+++++++++++++++++++Recursion level++++++++++++++++++", len(self.pages))
         if "Error Occurred" in self.check_url(url): return False
         bsObj = BeautifulSoup(self.html, "html.parser")
         domain_name = url.split("//")[1].split("/")[0]
@@ -55,8 +56,6 @@ class Scanner:
                     print(newPage)
                     self.pages.append(newPage)
                     print("current link: ",newPage, "\nlink ", self.pages.index(newPage)," of ", len(self.pages) )
-                    if len(self.pages) > 100:
-                        return self.pages
                     self.link_iterator(newPage, recursion_level+1)
         return self.pages
                 
