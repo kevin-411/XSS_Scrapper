@@ -35,12 +35,7 @@ Number of links is {{links_len}}
   Location of Malicious Script: <ol> {% for location in results[link]['script_location'] %}
     <li style="background-color: burlywood;"> {{location}} </li>
     {% endfor %}</ol> <br>
-  Possible Entry Point : <ol> {% for entry_point in results[link]['possible_entry_point'] %}
-    <li style="background-color: burlywood;"> {{entry_point}} </li>
-    {% endfor %}</ol> <br>
-  Remedy of Cross-Site Scripting Exploitation :<ol>{% for remedy in results[link]['remedy'] %}
-    <li style="background-color: burlywood;"> {{remedy}} </li>
-    {% endfor %}</ol> <br> <br>
+  
   {%  endif %}
   {% endfor %}
   <p>&nbsp<br><a href={{ url_for('index') }} ><button value="New Scan">New Scan</button></a>

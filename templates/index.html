@@ -8,6 +8,8 @@ document.getElementById("progress_area").innerHTML =  '<div class="loader"></div
   });
 </script>
 {% block content %}
+<h1>SXAFP</h1>
+<i> Stored XSS Attacks Forensic Pathologist </i>
 <form onsubmit="loadSpinner" action="link" method="post" enctype="multipart/form-data" >        
   <input maxlength="256" autocomplete="off" type="url" class="link" name="url" required placeholder="Enter domain to scan"><br>
   <input type="checkbox" name="domain_search" value="true" autocomplete="off"> Search Entire Domain<br>

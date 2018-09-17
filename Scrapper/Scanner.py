@@ -51,15 +51,15 @@ class Scanner:
                     newPage = link.attrs['href']                    
                 except IndexError:
                     if len(links3)>0: newPage = link.attrs['href']
-                    elif len(links4) > 0: newPage = url.split("//")[0]+"//"+domain_name+"/"+url.split("//")[1].split("/")[1]+"/"+link.attrs['href']
-                    else: newPage = url.split("//")[0]+"//"+domain_name+"/"+url.split("//")[1].split("/")[1]+"/"+link.attrs['href']
-                    
-                except: newPage = url.split("//")[0]+"//"+domain_name+"/"+url.split("//")[1].split("/")[1]+"/"+link.attrs['href']
-                print("_____________", newPage)
+                    elif len(links4) > 0: newPage = url.split("//")[0]+"//"+domain_name+"/"+link.attrs['href']
+                    else: newPage = url.split("//")[0]+"//"+domain_name+link.attrs['href']                    
+                except: newPage = url.split("//")[0]+"//"+domain_name+link.attrs['href']
             
                 if newPage not in self.pages:                   
                     print(newPage)
-                    if recursion_level > 10 or len(self.pages) > 10: return self.pages
+                    if recursion_level > 10 or len(self.pages) > 10:
+                        break
+                    
                     self.pages.append(newPage)
                     print("current link: ",newPage, "\nlink ", self.pages.index(newPage)," of ", len(self.pages) )
                     self.link_iterator(newPage, recursion_level+1)
@@ -135,8 +135,7 @@ class Scanner:
         return page_html
 
     #function moved from analyser component
-    def deobfuscate(self,page_html):        
-        #theres also superflous use of escape characters
+    def deobfuscate(self,page_html):
         print("attempting preliminary deobfuscation")
         clean_block = ""
         html_code = page_html
@@ -178,7 +177,6 @@ class Scanner:
         if self.script:
             print("scripts include: ")
             for script in self.script:
-                #print(script.get_text())
                 self.scripts.append(script.get_text())
         tags = bsObj.findAll(lambda tag: len(tag.attrs) >0, recursive=False)
         attributes = ["onreadystatechange","onpropertychange","onbeforeactivate","onactivatein","onfocusin","onscroll","onmousemove","onmouseover", "onblur", "onload", "onerror","data","src","formaction"]
@@ -189,7 +187,6 @@ class Scanner:
                     try:
                         script = str(tag).split(attribute)[1].split(">")[0].split("=")[1].split(" ")[0]
                         self.scripts.append(script)
-                        #print("Script is ", script)
                     except IndexError: continue
                     
         return self.scripts
