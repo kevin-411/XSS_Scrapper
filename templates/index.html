@@ -1,7 +1,7 @@
 {%extends 'base.html'%}
 <script>
   function loadSpinner(){
-  document.getElementById("progress_area").innerHTML =  '<div class="loader"></div>' 
+  document.getElementById("progress_area").innerHTML =  '<div class="loader"></div>'
   }
   document.getElementById("upload_button").addEventListener('click', function(event){
 document.getElementById("progress_area").innerHTML =  '<div class="loader"></div>'
@@ -10,14 +10,19 @@ document.getElementById("progress_area").innerHTML =  '<div class="loader"></div
 {% block content %}
 <h1>SXAFP</h1>
 <i> Stored XSS Attacks Forensic Pathologist </i>
-<form onsubmit="loadSpinner" action="link" method="post" enctype="multipart/form-data" >        
-  <input maxlength="256" autocomplete="off" type="url" class="link" name="url" required placeholder="Enter domain to scan"><br>
-  <input type="checkbox" name="domain_search" value="true" autocomplete="off"> Search Entire Domain<br>
-  <input maxlength="256" autocomplete="off" type="search" class="username" name="username_field" placeholder="Enter username field name">
-  <input maxlength="256" autocomplete="off" type="search" class="username" name="username" placeholder="Enter site username">
-  <input maxlength="256" autocomplete="off" type="search" class="" name="password_field" placeholder="Enter password field name">
-  <input maxlength="256" autocomplete="off" type="password" class="password" name="password" placeholder="Enter site password">
-  <button type="submit"><div id="upload_button">Upload</div></button>
+<form onsubmit="loadSpinner" action="link" method="post" enctype="multipart/form-data" >
+  <input maxlength="2560" autocomplete="off" type="url" class="link" name="url" required placeholder="Enter domain to scan"><br><br>
+  <input type="checkbox" name="domain_search" value="true" autocomplete="off"> Search Entire Domain<br><br>
+  <input maxlength="256" autocomplete="off" class="username" name="username_field" placeholder="Enter username field name">
+  <input maxlength="256" autocomplete="off" class="username" name="username" placeholder="Enter site username">
+  <input maxlength="256" autocomplete="off" class="username" name="password_field" placeholder="Enter password field name">
+  <input maxlength="256" autocomplete="off" type="password" class="username" name="password" placeholder="Enter site password"><br><br>
+   Wordlist File for directory bursting <input type="file" autocomplete="off" name="wordlist_file"><br><br>
+    <input type="text" autocomplete="off" type="search" placeholder="Cookies" name="cookies">
+    <input type="text" autocomplete="off" type="search" placeholder="Enter custom user agent" name="user_agent"><br><br>
+    <input type="number" placeholder="min delay (millisecs)" name="min_delay">
+    <input type="number" placeholder="max delay (millisecs)" name="max_delay"><br><br>
+    <button type="submit"><div id="upload_button">Upload</div></button>
 </form>
 
 {%endblock%}
@@ -25,14 +30,14 @@ document.getElementById("progress_area").innerHTML =  '<div class="loader"></div
 {% block footer %}
 <script>
   function loadSpinner(){
-  document.getElementById("progress_area").innerHTML =  '<div class="loader"></div>' 
+  document.getElementById("progress_area").innerHTML =  '<div class="loader"></div>'
 }
 </script>
 <div id = "progress_area">
 
 <div class="progress progress-striped active">
-  <div class="progress-bar progress-bar-success" role="progressbar" 
-       aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" 
+  <div class="progress-bar progress-bar-success" role="progressbar"
+       aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"
        style="width: 0%;">
     <span class="sr-only">40% Complete</span>
   </div>

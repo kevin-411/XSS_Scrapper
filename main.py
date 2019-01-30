@@ -90,25 +90,46 @@ def index(): return render_template('index.html')
 def link():
     if request.method == 'GET': return render_template('index.html')
     else:
-        link = request.form['url']        
-        try:
-            username_field = request.form['username_field']
-            username = request.form['username']
-        except:
-            username_field = False
-            username = False            
-        try:
-            password_field = request.form['password_field']
-            password = request.form['password']            
-        except:
-            password_field = False
-            password = False            
+        link = request.form['url']
         try:
             scan_domain = request.form['domain_search']
             links = list_of_links
         except:
             scan_domain = False
             links = [link]
+        try:
+            username_field = request.form['username_field']
+            username = request.form['username']
+        except:
+            username_field = False
+            username = False
+        try:
+            password_field = request.form['password_field']
+            password = request.form['password']            
+        except:
+            password_field = False
+            password = False
+        try:
+            directory_wordlist_file = request.form['wordlist_file']
+        except:
+            directory_wordlist_file = False
+        try:
+            cookies = request.form['cookies']
+        except:
+            cookies = False
+        try:
+            user_agent = request.form['user_agent']
+        except:
+            user_agent = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) " \
+                         "Chrome/62.0.3202.9 Safari/537.36"
+        try:
+            min_delay = request.form['minimum_delay']
+        except:
+            min_delay = 3000
+        try:
+            max_delay = request.form['maximum_delay']
+        except:
+            max_delay = 7000
         if username_field and username and password_field and password: parameters = {username_field:username, password_field:password}
         else: parameters = None
         if not scan_domain:
