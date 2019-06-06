@@ -57,3 +57,10 @@ Author
 
 Kevin Obuya
 
+
+To Do:
+===
+
+disable deobfuscation, or only do it once
+provide a way for initialising db with entries for regex of Sinks
+
