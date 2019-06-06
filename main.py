@@ -29,6 +29,8 @@ def link_iterator(url):
     get_links_list(list_of_links)
     print("links = ******************************************", list_of_links)
     for link in list_of_links:
+		extension = link[3:]
+		if extension is "pdf" or extension is "png" or rxtension is "jpeg" 
         results_list.append(mainFunc(link))    
     return results_list
 

@@ -41,11 +41,14 @@ class Analyser:
                     print("found ==>", code)
                     if unicode_escape_re:
                         old_code = re.findall(r'.*\\[U1X]\d+', code, re.I)[0].split('\\')[1]
-                        if old_code[0] is 'u' or old_code[0] is 'x':
-                            old_code2 = old_code.replace('u', 'x')
-                            new_code = chr(eval('0'+old_code2+'c'))
-                        else:
-                            new_code = old_code
+                        try:
+							if old_code[0] is 'u' or old_code[0] is 'x':
+                                old_code2 = old_code.replace('u', 'x')
+                                new_code = chr(eval('0'+old_code2+'c'))
+                            else:
+                                new_code = old_code
+                        except:
+							new_code = old_code
                     elif html_encode_re:                        
                         old_code = re.findall('&#[x1]\d+', code)[0].split("#")[1]
                         if x in old_code:
